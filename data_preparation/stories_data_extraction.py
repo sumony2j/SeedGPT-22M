@@ -4,7 +4,8 @@ import json
 import re
 import unicodedata
 
-input_dir = "/LocalData/deepseek/dataset/TinyStories/stories/data/train"
+input_dir = "/LocalData/deepseek/dataset/TinyStories/Train"
+input_dir = "/LocalData/deepseek/dataset/stories/data/train"
 output_file = "./stories_train_data.jsonl"
 
 
