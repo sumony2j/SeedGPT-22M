@@ -8,4 +8,5 @@ modelscope
 zarr==2.10
 numcodecs
 tqdm
-trl
+streamlit
+streamlit_chat

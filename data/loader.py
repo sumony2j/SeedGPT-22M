@@ -28,27 +28,6 @@ def get_batched_data(input_file,batch_size,context_len,device="cuda"):
         x = batch[:,:context_len].to(device=device)
         y = batch[:,1:context_len+1].to(device=device)
         yield x,y
-    """
-    count = 0
-    itr = 0 
-    while True:
-        if count + batch_size > len(index):
-            count = 0
-            np.random.shuffle(index)
-            print(f"Finished iteration : {itr}")
-            itr += 1
-        data_index = index[count:count+batch_size]*context_len
-        data = [dataset[i:i+context_len+1] for i in data_index]
-        if len(data) == 0:  # just in case
-            print(f"[Rank {rank}] No data found in batch, skipping...")
-            continue
-        batch = np.stack(data)
-        batch = torch.tensor(batch,dtype=torch.long)
-        x = batch[:,:context_len].to(device=device)
-        y = batch[:,1:context_len+1].to(device=device)
-        count += batch_size
-        yield x,y
-    """
         
 
 if __name__ == "__main__":

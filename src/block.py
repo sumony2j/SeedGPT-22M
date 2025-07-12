@@ -1,6 +1,6 @@
 import torch.nn as nn
-from feedforward import MLP
-from attention import Attention,MultiHeadAttention
+from .feedforward import MLP
+from .attention import Attention,MultiHeadAttention
 
 class Block(nn.Module):
     def __init__(self, num_head, emb_size, context):

@@ -60,5 +60,3 @@ def plot_graph(file_path,title = "Epochs VS Loss"):
     plt.grid(True)
     plt.tight_layout()
     plt.show()
-        
-plot_graph("./SeedGPT-13M/src/log.txt")
