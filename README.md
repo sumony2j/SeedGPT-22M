@@ -1,4 +1,4 @@
-# 🌱 SeedGPT-22M - Small Language Models for Efficient Text Generation
+# 🌱 SeedGPT-22M - Small Language Model for Efficient Text Generation
 
 ![SeedGPT Architecture](./Architecture.webp)
 
