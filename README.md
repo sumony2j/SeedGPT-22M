@@ -206,7 +206,7 @@ Try prompts like:
 |-------|-----|
 | `CUDA device not available` | Ensure compatible CUDA and GPU driver is installed |
 | `Model not loading` | Check internet access for downloading from Hugging Face |
-| `Streamlit crashes` | Use Python 3.8+, install all requirements |
+| `Streamlit crashes` | Use Python 3.13+, install all requirements |
 | `Chat not generating response` | Increase max token or lower temperature |
 
 ---
