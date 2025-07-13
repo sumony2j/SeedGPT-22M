@@ -89,7 +89,7 @@ MODEL_FOR_CAUSAL_LM_MAPPING.register(HFTransformerConfig, HFTransformerModel)
 
 ### Requirements
 
-Ensure Python 3.8+ is installed.
+Ensure Python 3.13+ is installed.
 
 ### Install dependencies
 
