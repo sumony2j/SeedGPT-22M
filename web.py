@@ -62,11 +62,11 @@ model = AutoModelForCausalLM.from_pretrained(f"singhsumony2j/{model_type}",
 
 #model.to(device)
 
-"""
-for name, param in model.named_parameters():
-    print(f"{name}: {param.device}")
-"""    
-with st.sidebar.expander("📄 Model Info", expanded=True):
+
+#for name, param in model.named_parameters():
+#    print(f"{name}: {param.device}")
+
+with st.sidebar.expander("📄 Model Info", expanded=False):
     st.markdown(f"""
     **🧬 Model Name**: {model_details['name']}  
     **📊 Parameters**: {model_details['params']}  
