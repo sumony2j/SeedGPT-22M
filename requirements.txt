@@ -1,0 +1,12 @@
+pandas
+torch
+datasets
+transformers
+tokenizers
+tiktoken
+modelscope
+zarr==2.10
+numcodecs
+tqdm
+streamlit
+streamlit_chat
