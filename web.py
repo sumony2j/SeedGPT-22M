@@ -10,7 +10,7 @@ from src.convert_to_hf_model import HFTransformerConfig, HFTransformerModel  # c
 CONFIG_MAPPING.register("hf_transformer", HFTransformerConfig)
 MODEL_FOR_CAUSAL_LM_MAPPING.register(HFTransformerConfig, HFTransformerModel)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model_info = {
     "SeedGPT-V2" : {
@@ -57,13 +57,13 @@ model_type = st.sidebar.selectbox("🧠 Select model",options=model_info.keys())
 model_details = model_info[model_type]
 
 tokenizer = AutoTokenizer.from_pretrained(f"singhsumony2j/{model_type}")
-model = AutoModelForCausalLM.from_pretrained(f"singhsumony2j/{model_type}",low_cpu_mem_usage=False,device_map=None,torch_dtype="auto")
+model = AutoModelForCausalLM.from_pretrained(f"singhsumony2j/{model_type}",device_map="auto",torch_dtype="auto")
 
-model.to(device)
+#model.to(device)
 
 
-#for name, param in model.named_parameters():
-#    print(f"{name}: {param.device}")
+for name, param in model.named_parameters():
+    print(f"{name}: {param.device}")
 
 with st.sidebar.expander("📄 Model Info", expanded=False):
     st.markdown(f"""
@@ -115,7 +115,7 @@ if prompt := st.chat_input("💬 Ask SeedGPT ...",max_chars=50):
         st.session_state["messages"].append({"role":"user","content":prompt})
         input_txt = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
         inputs = tokenizer(input_txt, return_tensors="pt")
-        inputs.to(device=device)
+        #inputs.to(device=device)
         with torch.no_grad():
             output = model.generate(inputs["input_ids"], max_tokens=max_num_tokens,temp=temp)
             generated = output[0][inputs["input_ids"].shape[1]:]
@@ -124,7 +124,7 @@ if prompt := st.chat_input("💬 Ask SeedGPT ...",max_chars=50):
     else:
         tokens = tokenizer(prompt)
         input_tokens = torch.tensor(tokens.input_ids,dtype=torch.long)[None,:]
-        input_tokens.to(device=device)
+        #input_tokens.to(device=device)
         st.session_state["messages"].append({"role":"user","content":prompt})
         response = model.generate(input_tokens,max_num_tokens,temp)
         output_txt = tokenizer.decode(response[0].tolist(),skip_special_tokens=True)
