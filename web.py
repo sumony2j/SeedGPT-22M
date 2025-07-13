@@ -10,7 +10,7 @@ from src.convert_to_hf_model import HFTransformerConfig, HFTransformerModel  # c
 CONFIG_MAPPING.register("hf_transformer", HFTransformerConfig)
 MODEL_FOR_CAUSAL_LM_MAPPING.register(HFTransformerConfig, HFTransformerModel)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model_info = {
     "SeedGPT-V2" : {
@@ -60,7 +60,7 @@ tokenizer = AutoTokenizer.from_pretrained(f"singhsumony2j/{model_type}")
 model = AutoModelForCausalLM.from_pretrained(f"singhsumony2j/{model_type}",
                                              low_cpu_mem_usage=True)
 
-model.to(device)
+#model.to(device)
 
 
 for name, param in model.named_parameters():
@@ -124,7 +124,7 @@ if prompt := st.chat_input("💬 Ask SeedGPT ...",max_chars=50):
     else:
         tokens = tokenizer(prompt)
         input_tokens = torch.tensor(tokens.input_ids,dtype=torch.long)[None,:]
-        input_tokens.to(device=device)
+        #input_tokens.to(device=device)
         st.session_state["messages"].append({"role":"user","content":prompt})
         response = model.generate(input_tokens,max_num_tokens,temp)
         output_txt = tokenizer.decode(response[0].tolist(),skip_special_tokens=True)
