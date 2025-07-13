@@ -8,5 +8,6 @@ modelscope
 zarr==2.10
 numcodecs
 tqdm
+accelerate
 streamlit
 streamlit_chat
