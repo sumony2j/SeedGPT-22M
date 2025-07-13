@@ -115,7 +115,10 @@ if prompt := st.chat_input("💬 Ask SeedGPT ...",max_chars=50):
         st.session_state["messages"].append({"role":"user","content":prompt})
         input_txt = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
         inputs = tokenizer(input_txt, return_tensors="pt")
-        #inputs.to(device=device)
+        # Move to model’s device
+        model_device = next(model.parameters()).device
+        inputs = {k: v.to(model_device) for k, v in inputs.items()}
+        
         with torch.no_grad():
             output = model.generate(inputs["input_ids"], max_tokens=max_num_tokens,temp=temp)
             generated = output[0][inputs["input_ids"].shape[1]:]
@@ -125,6 +128,9 @@ if prompt := st.chat_input("💬 Ask SeedGPT ...",max_chars=50):
         tokens = tokenizer(prompt)
         input_tokens = torch.tensor(tokens.input_ids,dtype=torch.long)[None,:]
         #input_tokens.to(device=device)
+        # Move to model’s device
+        model_device = next(model.parameters()).device
+        input_tokens = input_tokens.to(model_device)
         st.session_state["messages"].append({"role":"user","content":prompt})
         response = model.generate(input_tokens,max_num_tokens,temp)
         output_txt = tokenizer.decode(response[0].tolist(),skip_special_tokens=True)
