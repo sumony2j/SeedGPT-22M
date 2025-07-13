@@ -57,8 +57,7 @@ model_type = st.sidebar.selectbox("🧠 Select model",options=model_info.keys())
 model_details = model_info[model_type]
 
 tokenizer = AutoTokenizer.from_pretrained(f"singhsumony2j/{model_type}")
-model = AutoModelForCausalLM.from_pretrained(f"singhsumony2j/{model_type}",
-                                             low_cpu_mem_usage=True)
+model = AutoModelForCausalLM.from_pretrained(f"singhsumony2j/{model_type}",low_cpu_mem_usage=False,device_map=None,torch_dtype="auto")
 
 #model.to(device)
 
