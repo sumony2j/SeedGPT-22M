@@ -194,9 +194,9 @@ NCCL environment variables are pre-configured for optimal network training perfo
 
 Try prompts like:
 
-- `"Tell me a bedtime story about a space dinosaur."`
+- `"Hi, How are you?"`
 - `"Explain quantum physics simply."`
-- `"Simulate a conversation between a detective and a suspect."`
+- `"Tell me about stock market"`
 
 ---
 
