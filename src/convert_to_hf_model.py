@@ -12,13 +12,15 @@ import os
 class HFTransformerConfig(PretrainedConfig):
     model_type = "hf_transformer"
 
-    def __init__(self, vocab_size=30522, emb_size=512, max_seq=128, num_head=8, num_block=6, **kwargs):
+    def __init__(self, vocab_size=30522, emb_size=512, max_seq=128, num_head=8, num_block=6,
+                 initializer_range=0.02,**kwargs):
         super().__init__(**kwargs)
         self.vocab_size = vocab_size
         self.emb_size = emb_size
         self.max_seq = max_seq
         self.num_head = num_head
         self.num_block = num_block
+        self.initializer_range = initializer_range
         
 
 
@@ -38,6 +40,16 @@ class HFTransformerModel(PreTrainedModel):
             num_block=config.num_block,
         )
         self.init_weights()
+    
+    def _init_weights(self, module):
+        if isinstance(module, nn.Linear):
+            nn.init.normal_(module.weight, mean=0.0, std=self.config.initializer_range)
+            if module.bias is not None:
+                nn.init.zeros_(module.bias)
+        elif isinstance(module, nn.Embedding):
+            nn.init.normal_(module.weight, mean=0.0, std=self.config.initializer_range)
+            if hasattr(module, "padding_idx") and module.padding_idx is not None:
+                module.weight.data[module.padding_idx].zero_()
 
     def forward(self, input_ids, labels=None):
         logits, loss = self.model(input_ids, targets=labels)
