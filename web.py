@@ -10,8 +10,11 @@ from src.convert_to_hf_model import HFTransformerConfig, HFTransformerModel  # c
 CONFIG_MAPPING.register("hf_transformer", HFTransformerConfig)
 MODEL_FOR_CAUSAL_LM_MAPPING.register(HFTransformerConfig, HFTransformerModel)
 
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+if "is_generating" not in st.session_state:
+    st.session_state["is_generating"] = False
+    
 model_info = {
     "SeedGPT-V2" : {
         "name": "SeedGPT-V2",
@@ -41,6 +44,8 @@ model_info = {
 
 st.set_page_config(page_title="SeedGPT",page_icon=":deciduous_tree:",layout="wide")
 
+controls_disabled = st.session_state["is_generating"]
+
 # ----- Custom Styled Title -----
 st.markdown("""
     <div style='text-align: center; padding: 1rem 0;'>
@@ -51,16 +56,34 @@ st.markdown("""
 
 
 st.sidebar.markdown("<h3 style='color: #2e7d32;'>🛠️ Settings</h3>", unsafe_allow_html=True)
-temp = st.sidebar.slider(label="🌡️ Temperature",min_value=0.2,max_value=1.0,step=0.05,value=0.7)
+temp = st.sidebar.slider(label="🌡️ Temperature",min_value=0.2,max_value=1.0,step=0.05,value=0.7,
+                         disabled=controls_disabled)
 st.sidebar.markdown("</br>",unsafe_allow_html=True)
-model_type = st.sidebar.selectbox("🧠 Select model",options=model_info.keys())
+model_type = st.sidebar.selectbox("🧠 Select model",options=model_info.keys(),
+                                  disabled=controls_disabled)
 model_details = model_info[model_type]
 
-tokenizer = AutoTokenizer.from_pretrained(f"singhsumony2j/{model_type}")
-model = AutoModelForCausalLM.from_pretrained(f"singhsumony2j/{model_type}",device_map="auto",torch_dtype="auto")
+#tokenizer = AutoTokenizer.from_pretrained(f"singhsumony2j/{model_type}")
+#model = AutoModelForCausalLM.from_pretrained(f"singhsumony2j/{model_type}")
 
 #model.to(device)
 
+    
+# -------- Load tokenizer & model in session_state --------
+if "model" not in st.session_state or st.session_state.get("model_type") != model_type:
+    st.session_state["is_generating"] = True
+    try:
+        st.session_state["tokenizer"] = AutoTokenizer.from_pretrained(f"singhsumony2j/{model_type}")
+        st.session_state["model"] = AutoModelForCausalLM.from_pretrained(f"singhsumony2j/{model_type}",
+                                                                         device_map=device,
+                                                                         torch_dtype=torch.float32)
+        st.session_state["model"].to(device)
+        st.session_state["model_type"] = model_type
+    finally:
+        st.session_state["is_generating"] = False
+
+tokenizer = st.session_state["tokenizer"]
+model = st.session_state["model"]
 
 for name, param in model.named_parameters():
     print(f"{name}: {param.device}")
@@ -76,9 +99,10 @@ with st.sidebar.expander("📄 Model Info", expanded=False):
     """)
 
 st.sidebar.markdown("</br>",unsafe_allow_html=True)
-max_num_tokens = st.sidebar.slider(label="🔠 Max Tokens",min_value=10,max_value=4096,value=100,step=1)
+max_num_tokens = st.sidebar.slider(label="🔠 Max Tokens",min_value=10,max_value=4096,value=100,step=1,
+                                   disabled=controls_disabled)
 
-if st.sidebar.button("🧹 Clear Chat"):
+if st.sidebar.button("🧹 Clear Chat",disabled=controls_disabled):
     st.session_state["messages"] = []
     st.rerun()
     
@@ -110,31 +134,33 @@ tokenizer.chat_template = """
 
 
 if prompt := st.chat_input("💬 Ask SeedGPT ...",max_chars=50):
-    if model_details['name'] == "SeedGPT-V3":
-        chat = [{"role": "user", "content": prompt}]
+    st.session_state["is_generating"] = True
+    try:
         st.session_state["messages"].append({"role":"user","content":prompt})
-        input_txt = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
-        inputs = tokenizer(input_txt, return_tensors="pt")
-        # Move to model’s device
-        model_device = next(model.parameters()).device
-        inputs = {k: v.to(model_device) for k, v in inputs.items()}
+        if model_details['name'] == "SeedGPT-V3":
+            chat = [{"role": "user", "content": prompt}]
+            input_txt = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
+            inputs = tokenizer(input_txt, return_tensors="pt")
+            inputs = {k: v.to(device) for k, v in inputs.items()}
         
-        with torch.no_grad():
-            output = model.generate(inputs["input_ids"], max_tokens=max_num_tokens,temp=temp)
-            generated = output[0][inputs["input_ids"].shape[1]:]
-            output_txt = tokenizer.decode(generated, skip_special_tokens=True)
-            st.session_state["messages"].append({"role":"assistant","content":output_txt})
-    else:
-        tokens = tokenizer(prompt)
-        input_tokens = torch.tensor(tokens.input_ids,dtype=torch.long)[None,:]
-        #input_tokens.to(device=device)
-        # Move to model’s device
-        model_device = next(model.parameters()).device
-        input_tokens = input_tokens.to(model_device)
-        st.session_state["messages"].append({"role":"user","content":prompt})
-        response = model.generate(input_tokens,max_num_tokens,temp)
-        output_txt = tokenizer.decode(response[0].tolist(),skip_special_tokens=True)
-        output_txt = output_txt.replace("</S>", "").strip()
+            with st.spinner("🌱 SeedGPT is thinking..."):
+                with torch.no_grad():
+                    output = model.generate(inputs["input_ids"], max_tokens=max_num_tokens,temp=temp)
+                generated = output[0][inputs["input_ids"].shape[1]:]
+                output_txt = tokenizer.decode(generated, skip_special_tokens=True)
+            #st.session_state["messages"].append({"role":"assistant","content":output_txt})
+        else:
+            tokens = tokenizer(prompt)
+            input_tokens = torch.tensor(tokens.input_ids,dtype=torch.long)[None,:]
+            input_tokens = input_tokens.to(device)
+            st.session_state["messages"].append({"role":"user","content":prompt})
+            with st.spinner("🌱 SeedGPT is thinking..."):
+                with torch.no_grad():
+                    response = model.generate(input_tokens,max_num_tokens,temp)
+            output_txt = tokenizer.decode(response[0].tolist(),skip_special_tokens=True)
+            output_txt = output_txt.replace("</S>", "").strip()
         st.session_state["messages"].append({"role":"assistant","content":output_txt})
-    st.rerun()
+        st.rerun()
+    finally:
+        st.session_state["is_generating"] = False
 
