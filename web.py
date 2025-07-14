@@ -63,24 +63,23 @@ model_type = st.sidebar.selectbox("🧠 Select model",options=model_info.keys(),
                                   disabled=controls_disabled)
 model_details = model_info[model_type]
 
-#tokenizer = AutoTokenizer.from_pretrained(f"singhsumony2j/{model_type}")
-#model = AutoModelForCausalLM.from_pretrained(f"singhsumony2j/{model_type}")
-
-#model.to(device)
-
     
 # -------- Load tokenizer & model in session_state --------
 if "model" not in st.session_state or st.session_state.get("model_type") != model_type:
     st.session_state["is_generating"] = True
-    try:
-        st.session_state["tokenizer"] = AutoTokenizer.from_pretrained(f"singhsumony2j/{model_type}")
-        st.session_state["model"] = AutoModelForCausalLM.from_pretrained(f"singhsumony2j/{model_type}",
-                                                                         device_map=None,
-                                                                         torch_dtype=torch.float32)
-        st.session_state["model"].to(device)
-        st.session_state["model_type"] = model_type
-    finally:
-        st.session_state["is_generating"] = False
+    with st.spinner(f"🔄 Loading model **{model_type}**... Please wait! ⚙️\n🚫 Do not change any settings or enter a prompt now."):
+        try:
+            st.session_state["tokenizer"] = AutoTokenizer.from_pretrained(f"singhsumony2j/{model_type}")
+            st.session_state["model"] = AutoModelForCausalLM.from_pretrained(
+                f"singhsumony2j/{model_type}",
+                device_map=None,
+                torch_dtype=torch.float32
+            )
+            st.session_state["model"].to(device)
+            st.session_state["model_type"] = model_type
+        finally:
+            st.session_state["is_generating"] = False
+
 
 tokenizer = st.session_state["tokenizer"]
 model = st.session_state["model"]
