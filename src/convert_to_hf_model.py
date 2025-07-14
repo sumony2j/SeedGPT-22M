@@ -19,6 +19,7 @@ class HFTransformerConfig(PretrainedConfig):
         self.max_seq = max_seq
         self.num_head = num_head
         self.num_block = num_block
+        
 
 
 # ----------------------------------
@@ -36,6 +37,7 @@ class HFTransformerModel(PreTrainedModel):
             num_head=config.num_head,
             num_block=config.num_block,
         )
+        self.init_weights()
 
     def forward(self, input_ids, labels=None):
         logits, loss = self.model(input_ids, targets=labels)
