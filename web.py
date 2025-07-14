@@ -44,7 +44,7 @@ model_info = {
 
 st.set_page_config(page_title="SeedGPT",page_icon=":deciduous_tree:",layout="wide")
 
-controls_disabled = st.session_state["is_generating"]
+controls_disabled = st.session_state.get("is_generating", False)
 
 # ----- Custom Styled Title -----
 st.markdown("""
@@ -75,7 +75,7 @@ if "model" not in st.session_state or st.session_state.get("model_type") != mode
     try:
         st.session_state["tokenizer"] = AutoTokenizer.from_pretrained(f"singhsumony2j/{model_type}")
         st.session_state["model"] = AutoModelForCausalLM.from_pretrained(f"singhsumony2j/{model_type}",
-                                                                         device_map=device,
+                                                                         device_map=None,
                                                                          torch_dtype=torch.float32)
         st.session_state["model"].to(device)
         st.session_state["model_type"] = model_type
@@ -132,35 +132,41 @@ tokenizer.chat_template = """
 {% endif %}
 """
 
+# This handles when user hits Enter
+if prompt := st.chat_input("💬 Ask SeedGPT ...", max_chars=50):
+    # Only start generation if not already generating
+    if not st.session_state["is_generating"]:
+        st.session_state["pending_prompt"] = prompt
+        st.session_state["is_generating"] = True
+        st.rerun()
 
-if prompt := st.chat_input("💬 Ask SeedGPT ...",max_chars=50):
-    st.session_state["is_generating"] = True
+# If there is a pending prompt and we are generating, do the generation
+if st.session_state.get("is_generating", False) and st.session_state.get("pending_prompt"):
+    prompt = st.session_state.pop("pending_prompt")  # Get and remove it
+    st.session_state["messages"].append({"role":"user","content":prompt})
     try:
-        st.session_state["messages"].append({"role":"user","content":prompt})
         if model_details['name'] == "SeedGPT-V3":
             chat = [{"role": "user", "content": prompt}]
             input_txt = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
             inputs = tokenizer(input_txt, return_tensors="pt")
             inputs = {k: v.to(device) for k, v in inputs.items()}
-        
+
             with st.spinner("🌱 SeedGPT is thinking..."):
                 with torch.no_grad():
-                    output = model.generate(inputs["input_ids"], max_tokens=max_num_tokens,temp=temp)
+                    output = model.generate(inputs["input_ids"], max_tokens=max_num_tokens, temp=temp)
                 generated = output[0][inputs["input_ids"].shape[1]:]
                 output_txt = tokenizer.decode(generated, skip_special_tokens=True)
-            #st.session_state["messages"].append({"role":"assistant","content":output_txt})
         else:
             tokens = tokenizer(prompt)
             input_tokens = torch.tensor(tokens.input_ids,dtype=torch.long)[None,:]
             input_tokens = input_tokens.to(device)
-            st.session_state["messages"].append({"role":"user","content":prompt})
             with st.spinner("🌱 SeedGPT is thinking..."):
                 with torch.no_grad():
-                    response = model.generate(input_tokens,max_num_tokens,temp)
-            output_txt = tokenizer.decode(response[0].tolist(),skip_special_tokens=True)
+                    response = model.generate(input_tokens, max_num_tokens, temp)
+            output_txt = tokenizer.decode(response[0].tolist(), skip_special_tokens=True)
             output_txt = output_txt.replace("</S>", "").strip()
+
         st.session_state["messages"].append({"role":"assistant","content":output_txt})
-        st.rerun()
     finally:
         st.session_state["is_generating"] = False
-
+        st.rerun()
