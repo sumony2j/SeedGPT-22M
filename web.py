@@ -44,7 +44,7 @@ model_info = {
 
 st.set_page_config(page_title="SeedGPT",page_icon=":deciduous_tree:",layout="wide")
 
-controls_disabled = st.session_state.get("is_generating", False)
+#controls_disabled = st.session_state.get("is_generating", False)
 
 # ----- Custom Styled Title -----
 st.markdown("""
@@ -57,10 +57,10 @@ st.markdown("""
 
 st.sidebar.markdown("<h3 style='color: #2e7d32;'>🛠️ Settings</h3>", unsafe_allow_html=True)
 temp = st.sidebar.slider(label="🌡️ Temperature",min_value=0.2,max_value=1.0,step=0.05,value=0.7,
-                         disabled=controls_disabled)
+                         disabled=st.session_state.get("is_generating", False))
 st.sidebar.markdown("</br>",unsafe_allow_html=True)
 model_type = st.sidebar.selectbox("🧠 Select model",options=model_info.keys(),
-                                  disabled=controls_disabled)
+                                  disabled=st.session_state.get("is_generating", False))
 model_details = model_info[model_type]
 
     
@@ -84,9 +84,6 @@ if "model" not in st.session_state or st.session_state.get("model_type") != mode
 tokenizer = st.session_state["tokenizer"]
 model = st.session_state["model"]
 
-for name, param in model.named_parameters():
-    print(f"{name}: {param.device}")
-
 with st.sidebar.expander("📄 Model Info", expanded=False):
     st.markdown(f"""
     **🧬 Model Name**: {model_details['name']}  
@@ -99,12 +96,13 @@ with st.sidebar.expander("📄 Model Info", expanded=False):
 
 st.sidebar.markdown("</br>",unsafe_allow_html=True)
 max_num_tokens = st.sidebar.slider(label="🔠 Max Tokens",min_value=10,max_value=4096,value=100,step=1,
-                                   disabled=controls_disabled)
+                                   disabled=st.session_state.get("is_generating", False))
 
-if st.sidebar.button("🧹 Clear Chat",disabled=controls_disabled):
+if st.sidebar.button("🧹 Clear Chat",disabled=st.session_state.get("is_generating", False)):
     st.session_state["messages"] = []
     st.rerun()
-    
+
+
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 
@@ -131,13 +129,20 @@ tokenizer.chat_template = """
 {% endif %}
 """
 
+
 # This handles when user hits Enter
-if prompt := st.chat_input("💬 Ask SeedGPT ...", max_chars=50):
-    # Only start generation if not already generating
-    if not st.session_state["is_generating"]:
-        st.session_state["pending_prompt"] = prompt
-        st.session_state["is_generating"] = True
-        st.rerun()
+prompt = None
+if  not st.session_state["is_generating"]:
+    prompt = st.chat_input("💬 Ask SeedGPT ...", max_chars=100)
+else:
+    st.chat_input("💬 Ask SeedGPT ...", max_chars=100, disabled=True)
+    #st.info("⏳ Please wait! SeedGPT is generating a response...")
+
+# If new prompt submitted, store it & rerun
+if prompt:
+    st.session_state["pending_prompt"] = prompt
+    st.session_state["is_generating"] = True
+    st.rerun()
 
 # If there is a pending prompt and we are generating, do the generation
 if st.session_state.get("is_generating", False) and st.session_state.get("pending_prompt"):
