@@ -1,5 +1,7 @@
 # 🌱 SeedGPT-22M — Compact, Efficient Small Language Model for Practical LLM Development
 
+[Launch SeedGPT Web Chat](https://seedgpt-22m-wo8tdm8nmzrpt4ehwzpybh.streamlit.app/)
+
 ![SeedGPT Architecture](./Architecture.webp)
 
 ---
@@ -15,7 +17,7 @@ SeedGPT supports multiple fine-tuned variants optimized for general text generat
 ## 🚀 Live Demo
 
 Try the model live on the web:  
-[Launch SeedGPT Web Chat](https://seedgpt-22m-guv7ntxxfk2wja4rprwycu.streamlit.app/)
+[Launch SeedGPT Web Chat](https://seedgpt-22m-wo8tdm8nmzrpt4ehwzpybh.streamlit.app/)
 
 ---
 
