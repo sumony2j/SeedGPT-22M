@@ -4,9 +4,9 @@ import torch
 from transformers import AutoTokenizer
 from src.transformer import Transformer
 
-tokenizer = AutoTokenizer.from_pretrained("./SeedGPT_20M/SeedTokenizer")
+tokenizer = AutoTokenizer.from_pretrained("./models/SeedGPT-V3/")
 device = "cuda" if torch.cuda.is_available() else "cpu"
-checkpoint = torch.load("./SeedGPT-V3_Chat_finetuned/pytorch_model.bin", map_location=device)
+checkpoint = torch.load("./models/SeedGPT-V3/SeedGPT-V3.bin", map_location=device)
 
 config = checkpoint["config"]
 model = Transformer(
@@ -36,7 +36,7 @@ tokenizer.chat_template = """
 chat = [{"role": "user", "content": "Hi"}]
 prompt = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
 inputs = tokenizer(prompt, return_tensors="pt")
-
+print(prompt)
 # Generate response
 with torch.no_grad():
     output = model.generate(inputs["input_ids"], max_tokens=10, temp=0.8)

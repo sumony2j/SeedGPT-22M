@@ -39,10 +39,13 @@ def generate_text(model_path,tokenizer_file,input_text:str,max_len:int,device="c
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate text with SeedGPT model.")
-    parser.add_argument("--tokenizer_file", type=str, required=True, help="Path to the tokenizer JSON file")
-    parser.add_argument("--model_path", type=str, required=True, help="Path to the trained model checkpoint (.pt)")
-    parser.add_argument("--prompt", type=str, required=True, help="Input prompt text to start generation")
-    parser.add_argument("--max_len", type=int, default=100, help="Number of tokens to generate")
+    parser.add_argument("--tokenizer_file", type=str, help="Path to the tokenizer JSON file",
+                        default="./saved_tokenizer/tokenizer.json")
+    parser.add_argument("--model_path", type=str, help="Path to the trained model checkpoint (.pt)",
+                        default="./models/SeedGPT-V2.pt")
+    parser.add_argument("--prompt", type=str, help="Input prompt text to start generation",
+                        default="The report is ")
+    parser.add_argument("--max_len", type=int, default=3000, help="Number of tokens to generate")
     parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"], help="Device to run inference on")
 
     args = parser.parse_args()
