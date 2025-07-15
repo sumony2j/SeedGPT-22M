@@ -33,13 +33,13 @@ tokenizer.chat_template = """
 {% endif %}
 """
 
-chat = [{"role": "user", "content": "Hi"}]
+chat = [{"role": "user", "content": "Who are you?"}]
 prompt = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
 inputs = tokenizer(prompt, return_tensors="pt")
-print(prompt)
+
 # Generate response
 with torch.no_grad():
-    output = model.generate(inputs["input_ids"], max_tokens=10, temp=0.8)
+    output = model.generate(inputs["input_ids"], max_tokens=100, temp=1.0)
 
 # Decode
 generated = output[0][inputs["input_ids"].shape[1]:]

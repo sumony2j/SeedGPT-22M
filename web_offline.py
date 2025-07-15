@@ -164,7 +164,6 @@ if st.session_state.get("is_generating", False) and st.session_state.get("pendin
             input_txt = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
             inputs = tokenizer(input_txt, return_tensors="pt")
             inputs = {k: v.to(device) for k, v in inputs.items()}
-            model.eval()
             with st.spinner("🌱 SeedGPT is thinking..."):
                 with torch.no_grad():
                     output = model.generate(inputs["input_ids"], max_tokens=max_num_tokens, temp=temp)
