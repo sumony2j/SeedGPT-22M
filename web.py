@@ -16,6 +16,14 @@ if "is_generating" not in st.session_state:
     st.session_state["is_generating"] = False
     
 model_info = {
+    "SeedGPT-V3" : {
+        "name": "SeedGPT-V3",
+        "params": "22M parameters",
+        "dataset": "Trained on lmsys chat english dataset",
+        "dataset_link" : "https://shorturl.at/PZANz",
+        "purpose": "Fine-tuned for chat style conversation",
+        "repo": "huggingface.co/singhsumony2j/SeedGPT-V3"
+    },
     "SeedGPT-V2" : {
         "name": "SeedGPT-V2",
         "params": "22M parameters",
@@ -31,14 +39,6 @@ model_info = {
         "dataset_link" : "https://shorturl.at/FezgK",
         "purpose": "Generate text based on input text",
         "repo": "huggingface.co/singhsumony2j/SeedGPT-V1"
-    },
-     "SeedGPT-V3" : {
-        "name": "SeedGPT-V3",
-        "params": "22M parameters",
-        "dataset": "Trained on lmsys chat english dataset",
-        "dataset_link" : "https://shorturl.at/PZANz",
-        "purpose": "Fine-tuned for chat style conversation",
-        "repo": "huggingface.co/singhsumony2j/SeedGPT-V3"
     }
 }
 
