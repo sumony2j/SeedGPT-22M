@@ -135,8 +135,8 @@ prompt = None
 if  not st.session_state["is_generating"]:
     prompt = st.chat_input("💬 Ask SeedGPT ...", max_chars=100)
 else:
-    st.chat_input("💬 Ask SeedGPT ...", max_chars=100, disabled=True)
-    #st.info("⏳ Please wait! SeedGPT is generating a response...")
+    st.chat_input("💬 Ask SeedGPT ...", max_chars=100, disabled=st.session_state["is_generating"])
+    st.warning("⚠️ You submitted a prompt before the model finished loading. This may result in incomplete or incorrect output. Please wait for the model to fully load before submitting a prompt.")
 
 # If new prompt submitted, store it & rerun
 if prompt:
