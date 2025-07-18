@@ -17,7 +17,10 @@ if "is_generating" not in st.session_state:
 
 if "pending_prompt" not in st.session_state:
     st.session_state["pending_prompt"] = None
-    
+
+if "messages" not in st.session_state:
+    st.session_state["messages"] = []
+        
 model_info = {
     "SeedGPT-V3" : {
         "name": "SeedGPT-V3",
@@ -47,7 +50,6 @@ model_info = {
 
 st.set_page_config(page_title="SeedGPT",page_icon=":deciduous_tree:",layout="wide")
 
-
 # ----- Custom Styled Title -----
 st.markdown("""
     <div style='text-align: center; padding: 1rem 0;'>
@@ -56,18 +58,36 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-
 st.sidebar.markdown("<h3 style='color: #2e7d32;'>🛠️ Settings</h3>", unsafe_allow_html=True)
 
-if "model_type" not in st.session_state:
-    st.session_state["model_type"] = None
-
-temp = st.sidebar.slider(label="🌡️ Temperature",min_value=0.2,max_value=1.0,step=0.05,value=0.7,
+temp = st.sidebar.slider(label="🌡️ Temperature",min_value=0.2,max_value=1.4,step=0.05,value=0.7,
                          disabled=st.session_state.get("is_generating", False))
 
 st.sidebar.markdown("</br>",unsafe_allow_html=True)
 
+max_num_tokens = st.sidebar.slider(label="🔠 Max Tokens",min_value=10,max_value=4096,value=100,step=1,disabled=st.session_state.get("is_generating", False))
 
+st.sidebar.markdown("</br>",unsafe_allow_html=True)
+
+if st.sidebar.button("🧹 Clear Chat",disabled=st.session_state.get("is_generating", False)):
+    st.session_state["messages"] = []
+    st.rerun()
+
+st.sidebar.markdown("</br>",unsafe_allow_html=True)
+
+for idx,msg in enumerate(st.session_state["messages"]):
+    is_user = msg["role"] == "user"
+    if msg["role"] == "assistant":
+        avatar = "bottts"
+        seed = "Aneka"
+    else:
+        avatar = "miniavs"
+        seed = "solid"
+    message(msg["content"],is_user=is_user,key=str(idx),avatar_style=avatar,seed=seed)
+
+if "model_type" not in st.session_state:
+    st.session_state["model_type"] = None
+    
 # Get the selected model type from the selectbox
 selected_model_type = st.sidebar.selectbox(
     "🧠 Select model", options=list(model_info.keys()),
@@ -89,8 +109,9 @@ if needs_loading and not st.session_state.get("is_generating", False):
     st.session_state["is_generating"] = True
     st.rerun()
 
+
 if needs_loading and st.session_state.get("is_generating", False):
-    with st.spinner(f"🔄 Loading model **{selected_model_type}**... Please wait! ⚙️"): 
+    with st.spinner(f"🫸 🔄 Please wait while we set things up ⚙️",show_time=True): 
         st.session_state["tokenizer"] = AutoTokenizer.from_pretrained(f"singhsumony2j/{selected_model_type}")
         st.session_state["model"] = AutoModelForCausalLM.from_pretrained(
             f"singhsumony2j/{selected_model_type}",
@@ -127,28 +148,6 @@ with st.sidebar.expander("📄 Model Info", expanded=False):
     **🔗 HF Repo**: [{model_details['repo']}](https://{model_details['repo']})
     """)
 
-st.sidebar.markdown("</br>",unsafe_allow_html=True)
-max_num_tokens = st.sidebar.slider(label="🔠 Max Tokens",min_value=10,max_value=4096,value=100,step=1,
-                                   disabled=st.session_state.get("is_generating", False))
-
-if st.sidebar.button("🧹 Clear Chat",disabled=st.session_state.get("is_generating", False)):
-    st.session_state["messages"] = []
-    st.rerun()
-
-
-if "messages" not in st.session_state:
-    st.session_state["messages"] = []
-
-for idx,msg in enumerate(st.session_state["messages"]):
-    is_user = msg["role"] == "user"
-    if msg["role"] == "assistant":
-        avatar = "bottts"
-        seed = "Aneka"
-    else:
-        avatar = "miniavs"
-        seed = "solid"
-    message(msg["content"],is_user=is_user,key=str(idx),avatar_style=avatar,seed=seed)
-
 st.session_state["tokenizer"].chat_template = """
 {% for message in messages %}
 {% if message["role"] == "user" %}
@@ -161,7 +160,6 @@ st.session_state["tokenizer"].chat_template = """
 <S>assistant:
 {% endif %}
 """
-
 
 # This handles when user hits Enter
 prompt = None
@@ -201,7 +199,7 @@ if (
             input_txt = tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
             inputs = tokenizer(input_txt, return_tensors="pt")
             inputs = {k: v.to(device) for k, v in inputs.items()}
-            with st.spinner("🌱 SeedGPT is thinking..."):
+            with st.spinner("🌱 SeedGPT is thinking...", show_time=True):
                 with torch.no_grad():
                     output = model.generate(inputs["input_ids"], max_tokens=max_num_tokens, temp=temp)
                 generated = output[0][inputs["input_ids"].shape[1]:]
@@ -210,7 +208,7 @@ if (
             tokens = tokenizer(prompt)
             input_tokens = torch.tensor(tokens.input_ids,dtype=torch.long)[None,:]
             input_tokens = input_tokens.to(device)
-            with st.spinner("🌱 SeedGPT is thinking..."):
+            with st.spinner("🌱 SeedGPT is thinking...", show_time=True):
                 with torch.no_grad():
                     response = model.generate(input_tokens, max_num_tokens, temp)
                 output_txt = tokenizer.decode(response[0].tolist(), skip_special_tokens=True)
