@@ -213,8 +213,8 @@ if (
             with st.spinner("🌱 SeedGPT is thinking..."):
                 with torch.no_grad():
                     response = model.generate(input_tokens, max_num_tokens, temp)
-            output_txt = tokenizer.decode(response[0].tolist(), skip_special_tokens=True)
-            output_txt = output_txt.replace("</S>", "").strip()
+                output_txt = tokenizer.decode(response[0].tolist(), skip_special_tokens=True)
+                output_txt = output_txt.replace("</S>", "").strip()
 
         st.session_state["messages"].append({"role":"assistant","content":output_txt})
     finally:
