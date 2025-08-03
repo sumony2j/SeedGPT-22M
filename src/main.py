@@ -116,14 +116,23 @@ if __name__ == "__main__":
     
     optimizer = torch.optim.AdamW(model.parameters(),src.config.LEARNING_RATE)
     
+    PRESAVED_MODEL_PATH = None
+
     ## Optional
-    PRETRAINED_MODEL = f"{src.config.SAVE_MODEL_PATH}"
-    if os.path.exists(PRETRAINED_MODEL):
+    if hasattr(src.config, "PRESAVED_MODEL_PATH") and src.config.PRESAVED_MODEL_PATH:
+        PRESAVED_MODEL_PATH = src.config.PRESAVED_MODEL_PATH
+        print("✅ Using presaved model path:", src.config.PRESAVED_MODEL_PATH)
+    # Load model or continue processing here
+    else:
+        print("❌ PRESAVED_MODEL_PATH not found. Skipping loading pretrained model.")
+        print("No Pretrained Model found : ---- Training from scratch ----")
+
+    if PRESAVED_MODEL_PATH and os.path.exists(PRESAVED_MODEL_PATH):
         map_loc = {f"cuda:0" : f"cuda:{int(os.environ['LOCAL_RANK'])}"}
-        check_point = torch.load(PRETRAINED_MODEL,map_location=map_loc)
+        check_point = torch.load(PRESAVED_MODEL_PATH,map_location=map_loc)
         model.load_state_dict(check_point["model_state_dict"])
         optimizer.load_state_dict(check_point["opt_state_dict"])
-        print(f"\n[Rank {dist.get_rank()}] Loaded pre-trained weights from: {PRETRAINED_MODEL}\n")
+        print(f"\n[Rank {dist.get_rank()}] Loaded pre-trained weights from: {PRESAVED_MODEL_PATH}\n")
 
     n_parameters = sum(p.numel() for p in SeedGPT.parameters())
     print(f"\nNumber of parameters need to be trained : {n_parameters/1e6:.2f} million")
